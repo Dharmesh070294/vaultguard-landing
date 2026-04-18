@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VaultGuard AI | Treasury Risk Guardian</title>
+  <meta name="description" content="VaultGuard AI helps Web3 teams detect suspicious treasury activity in real time with alerts, risk scoring, and multi-wallet monitoring." />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --bg-2: #111827;
+      --panel: rgba(17, 24, 39, 0.75);
+      --panel-border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --muted: #9ca3af;
+      --accent: #22d3ee;
+      --accent-2: #6366f1;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 20px;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.12), transparent 30%),
+        radial-gradient(circle at 80% 0%, rgba(99, 102, 241, 0.14), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      min-height: 100vh;
+    }
+
+    .grid-bg::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent 85%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(34, 211, 238, 0.22);
+      border-radius: 999px;
+      background: rgba(34, 211, 238, 0.08);
+      color: #d1fae5;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 18px var(--accent);
+    }
+
+    header {
+      padding: 22px 0;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(10px);
+      background: rgba(11, 15, 26, 0.55);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index: 20;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(34,211,238,.22), rgba(99,102,241,.22));
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      font-size: 18px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    .btn,
+    button {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-weight: 700;
+      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+
+    .btn:hover,
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary,
+    button {
+      color: #04131a;
+      background: linear-gradient(135deg, var(--accent), #67e8f9);
+      box-shadow: 0 12px 30px rgba(34, 211, 238, 0.25);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+
+    .hero {
+      padding: 78px 0 56px;
+    }
+
+    .hero-wrap {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 34px;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: clamp(42px, 6vw, 72px);
+      line-height: 1.02;
+      margin: 18px 0 18px;
+      letter-spacing: -0.04em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #fff 0%, #a5f3fc 55%, #818cf8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .sub {
+      font-size: 19px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 670px;
+      margin-bottom: 28px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .micro-proof {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      color: #d1d5db;
+      font-size: 14px;
+      margin-top: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card {
+      padding: 20px;
+    }
+
+    .hero-screen {
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .screen-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      color: #d1d5db;
+      font-size: 13px;
+    }
+
+    .screen-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .alert {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .alert strong { display: block; margin-bottom: 6px; }
+    .alert small { color: var(--muted); }
+
+    .critical { border-color: rgba(248,113,113,.35); box-shadow: inset 0 0 0 1px rgba(248,113,113,.08); }
+    .suspicious { border-color: rgba(251,191,36,.35); box-shadow: inset 0 0 0 1px rgba(251,191,36,.08); }
+    .normal { border-color: rgba(52,211,153,.25); }
+
+    .section {
+      padding: 34px 0 26px;
+    }
+
+    .section h2 {
+      font-size: clamp(28px, 3.6vw, 44px);
+      margin: 0 0 12px;
+      letter-spacing: -0.03em;
+    }
+
+    .section p.lead {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.7;
+      margin: 0 0 30px;
+      max-width: 760px;
+    }
+
+    .grid-3,
+    .grid-4,
+    .grid-2 {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .card {
+      padding: 24px;
+      min-height: 100%;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 21px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    .risk-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .risk-icon {
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .demo-wrap {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .demo-card {
+      padding: 22px;
+    }
+
+    .terminal {
+      background: #050814;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.7;
+      overflow: auto;
+    }
+
+    .terminal .green { color: #34d399; }
+    .terminal .yellow { color: #fbbf24; }
+    .terminal .red { color: #f87171; }
+    .terminal .cyan { color: #67e8f9; }
+
+    .waitlist {
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .waitlist::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -45% auto;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(34,211,238,.18), transparent 60%);
+      pointer-events: none;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1.1fr 1.1fr 1.2fr auto;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      outline: none;
+      font: inherit;
+    }
+
+    input::placeholder { color: #94a3b8; }
+    select { color: #cbd5e1; }
+
+    .form-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .success-box {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: #d1fae5;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.28);
+    }
+
+    .faq details {
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .faq details + details { margin-top: 12px; }
+    .faq summary { cursor: pointer; font-weight: 600; }
+    .faq p { margin: 12px 0 0; }
+
+    footer {
+      padding: 46px 0 60px;
+      color: var(--muted);
+    }
+
+    .footer-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 24px;
+    }
+
+    .tiny { font-size: 13px; color: var(--muted); }
+
+    @media (max-width: 1080px) {
+      .hero-wrap,
+      .demo-wrap,
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      header { position: static; }
+      .nav { flex-direction: column; align-items: flex-start; }
+      .hero { padding-top: 48px; }
+      .hero-actions { flex-direction: column; }
+      .btn, button { width: 100%; }
+      h1 { font-size: 42px; }
+    }
+  </style>
+</head>
+<body class="grid-bg">
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#top">
+        <div class="brand-mark">🛡️</div>
+        <div>VaultGuard AI</div>
+      </a>
+      <div class="nav-links">
+        <a href="#problem">Problem</a>
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#waitlist">Waitlist</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-wrap">
+        <div>
+          <div class="pill"><span class="dot"></span> Early access open for 5 Web3 teams</div>
+          <h1>
+            Real-time risk alerts for <span class="gradient-text">Web3 treasuries</span>
+          </h1>
+          <p class="sub">
+            VaultGuard AI helps DAOs, crypto teams, and onchain treasuries detect suspicious wallet activity before small anomalies become major losses. Monitor treasury wallets, flag abnormal transfers, and get instant alerts your team can actually act on.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#waitlist">Join the Waitlist</a>
+            <a class="btn btn-secondary" href="#demo">See the Demo</a>
+          </div>
+          <div class="micro-proof">
+            <span>⚡ Real-time alerting</span>
+            <span>🛡️ Risk-focused monitoring</span>
+            <span>🌐 Built for Web3 teams</span>
+          </div>
+        </div>
+
+        <div class="panel hero-card">
+          <div class="hero-screen">
+            <div class="screen-top">
+              <span>Live monitoring preview</span>
+              <span>ETH • ARB • POLYGON</span>
+            </div>
+            <div class="screen-grid">
+              <div class="alert critical">
+                <strong>🔴 Critical • Large outgoing transfer</strong>
+                <small>Ops Treasury sent 48.2 ETH to a new address • Alert sent to Telegram</small>
+              </div>
+              <div class="alert suspicious">
+                <strong>🟡 Suspicious • Unknown wallet interaction</strong>
+                <small>Treasury approved token spend to a previously unseen contract</small>
+              </div>
+              <div class="alert normal">
+                <strong>🟢 Normal • Routine treasury movement</strong>
+                <small>Recurring operational wallet funding matched configured threshold rules</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>Most treasury losses start with delayed detection</h2>
+        <p class="lead">
+          DAOs rarely fail because a dashboard was missing. They fail because nobody noticed the warning signs early enough. VaultGuard AI is designed to reduce that blind spot.
+        </p>
+        <div class="grid-3">
+          <div class="panel card">
+            <div class="risk-item">
+              <div class="risk-icon">💸</div>
+              <div>
+                <h3>Large unauthorized transfers</h3>
+                <p>Catch sudden outbound movements before they turn into full treasury drains.</p>
+              </div>
+            </div>
+          </div>
+          <div class="panel card">
+            <div class="risk-item">
+              <div class="risk-icon">🕳️</div>
+              <div>
+                <h3>Silent treasury leakage</h3>
+                <p>Detect repeated small withdrawals and abnormal patterns that humans usually miss.</p>
+              </div>
+            </div>
+          </div>
+          <div class="panel card">
+            <div class="risk-item">
+              <div class="risk-icon">🌐</div>
+              <div>
+                <h3>Multi-wallet blind spots</h3>
+                <p>Monitor treasury activity across multiple wallets without relying on manual checking.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="container">
+        <div class="eyebrow">Features</div>
+        <h2>Built to feel like a risk layer, not another dashboard</h2>
+        <p class="lead">
+          Enterprise-style positioning without enterprise complexity. Every feature is designed to improve reaction speed, reduce noise, and help treasury teams focus on what matters.
+        </p>
+        <div class="grid-4">
+          <div class="panel card">
+            <h3>Real-time alerts</h3>
+            <p>Instant notifications when suspicious activity is detected on monitored treasury wallets.</p>
+          </div>
+          <div class="panel card">
+            <h3>Risk-focused detection</h3>
+            <p>Flag large transfers, unknown wallets, unusual activity patterns, and custom thresholds.</p>
+          </div>
+          <div class="panel card">
+            <h3>Multi-wallet monitoring</h3>
+            <p>Track treasury wallets, ops wallets, multisigs, and designated smart money watchlists.</p>
+          </div>
+          <div class="panel card">
+            <h3>Actionable signal layer</h3>
+            <p>Designed to reduce alert fatigue and surface the events your team should act on first.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo" class="section">
+      <div class="container">
+        <div class="eyebrow">Demo</div>
+        <h2>What the product experience looks like</h2>
+        <p class="lead">
+          Use this section to show what a client actually gets: treasury activity detected, classified, and pushed to an alert channel in seconds.
+        </p>
+        <div class="demo-wrap">
+          <div class="panel demo-card">
+            <h3 style="margin-top:0;">Demo walkthrough</h3>
+            <p style="color: var(--muted); line-height: 1.8;">
+              1. A treasury wallet moves funds.<br />
+              2. VaultGuard AI checks the wallet, amount, and context.<br />
+              3. The event is classified as normal, suspicious, or critical.<br />
+              4. Your team gets an immediate alert and can respond fast.
+            </p>
+            <div style="margin-top:18px;" class="tiny">
+              Tip: replace the terminal preview on the right with your real screen recording, Telegram alert screenshot, or product GIF.
+            </div>
+          </div>
+          <div class="panel demo-card">
+            <div class="terminal">
+<span class="green">Tracker worker started</span>
+Monitoring wallet: <span class="cyan">Ops Treasury</span>
+New block detected: 10560889
+
+Wallet: <span class="cyan">0x4444...4444</span>
+Type: <span class="red">OUTGOING / SPENT</span>
+Amount changed: <span class="red">48.200000 ETH</span>
+Counterparty: <span class="yellow">New wallet detected</span>
+Risk level: <span class="red">CRITICAL</span>
+
+<span class="green">Telegram alert sent successfully</span>
+Message: 🚨 VaultGuard AI detected a critical treasury movement.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="waitlist" class="section">
+      <div class="container">
+        <div class="panel waitlist">
+          <div class="eyebrow">Waitlist</div>
+          <h2 style="margin-top:0;">Join early access</h2>
+          <p class="lead" style="margin-bottom: 18px; max-width: 860px;">
+            Get first access to VaultGuard AI and help shape the product. This page is ready for real email collection: replace the form endpoint with your Formspree, ConvertKit, Mailchimp, or backend API endpoint and start collecting leads immediately.
+          </p>
+
+          <form id="waitlistForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+            <input type="text" name="name" placeholder="Your name" required />
+            <input type="email" name="email" placeholder="Work email" required />
+            <select name="team_type" required>
+              <option value="">Team type</option>
+              <option value="dao">DAO</option>
+              <option value="defi">DeFi protocol</option>
+              <option value="fund">Crypto fund</option>
+              <option value="startup">Web3 startup</option>
+            </select>
+            <button type="submit">Join Waitlist</button>
+          </form>
+
+          <div class="success-box" id="successBox">
+            Thanks — your request was captured. Check your email or connect this form to your real waitlist endpoint before going live.
+          </div>
+
+          <div class="form-note">
+            Setup note: replace <strong>YOUR_FORM_ID</strong> in the form action with your Formspree form ID for live collection. Until then, the page also saves entries locally in the browser so you can test the flow.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="section">
+      <div class="container faq">
+        <div class="eyebrow">FAQ</div>
+        <h2>Questions serious clients usually ask</h2>
+        <div class="grid-2">
+          <div>
+            <details open>
+              <summary>Does VaultGuard AI require private keys?</summary>
+              <p>No. It is positioned as a monitoring and alerting layer for treasury wallets. Clients should never need to share private keys for the core service.</p>
+            </details>
+            <details>
+              <summary>What kind of risks does it help detect?</summary>
+              <p>Large outbound transfers, suspicious wallet interactions, treasury anomalies, repeated small drains, and treasury blind spots across monitored wallets.</p>
+            </details>
+          </div>
+          <div>
+            <details>
+              <summary>Who is this best for?</summary>
+              <p>DAOs, Web3 startups, crypto treasury teams, and small-to-mid protocols that want faster visibility into wallet risk without building internal monitoring from scratch.</p>
+            </details>
+            <details>
+              <summary>How do I make the waitlist form actually collect emails?</summary>
+              <p>Connect the form action to Formspree, Mailchimp, ConvertKit, or your own backend. The page is already structured for production-style lead collection.</p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div>
+        <strong>VaultGuard AI</strong><br />
+        <span class="tiny">Treasury Risk Guardian for Web3 teams</span>
+      </div>
+      <div class="tiny">Built for teams that take treasury risk seriously.</div>
+    </div>
+  </footer>
+
+  <script>
+    const form = document.getElementById('waitlistForm');
+    const successBox = document.getElementById('successBox');
+
+    form.addEventListener('submit', async function (e) {
+      const endpoint = form.getAttribute('action') || '';
+      const hasRealEndpoint = endpoint.includes('formspree.io/f/') && !endpoint.includes('YOUR_FORM_ID');
+
+      const payload = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        team_type: form.team_type.value
+      };
+
+      if (!hasRealEndpoint) {
+        e.preventDefault();
+        const existing = JSON.parse(localStorage.getItem('vaultguard_waitlist') || '[]');
+        existing.push({ ...payload, created_at: new Date().toISOString() });
+        localStorage.setItem('vaultguard_waitlist', JSON.stringify(existing));
+        form.reset();
+        successBox.style.display = 'block';
+        successBox.textContent = 'Saved locally for testing. Connect Formspree or your email tool before launching publicly.';
+        return;
+      }
+
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: formData,
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+          form.reset();
+          successBox.style.display = 'block';
+          successBox.textContent = 'Thanks — you are on the waitlist.';
+        } else {
+          successBox.style.display = 'block';
+          successBox.textContent = 'The form could not be submitted. Please verify the endpoint configuration.';
+        }
+      } catch (error) {
+        successBox.style.display = 'block';
+        successBox.textContent = 'Network error. Please verify your waitlist endpoint and try again.';
+      }
+    });
+  </script>
+</body>
+</html>

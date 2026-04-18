@@ -742,10 +742,11 @@ Message: 🚨 VaultGuard AI detected a critical treasury movement.
           form.reset();
           successBox.style.display = 'block';
           successBox.textContent = 'Thanks — you are on the waitlist.';
-        } else {
-          successBox.style.display = 'block';
-          successBox.textContent = 'The form could not be submitted. Please verify the endpoint configuration.';
-        }
+       } else {
+       const data = await response.json().catch(() => null);
+       successBox.style.display = 'block';
+       successBox.textContent = data?.errors?.[0]?.message || 'Submission failed. Check Formspree setup.';
+       }
       } catch (error) {
         successBox.style.display = 'block';
         successBox.textContent = 'Network error. Please verify your waitlist endpoint and try again.';
